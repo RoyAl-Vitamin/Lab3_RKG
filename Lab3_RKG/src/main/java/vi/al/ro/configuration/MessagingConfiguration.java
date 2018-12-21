@@ -1,18 +1,18 @@
 package vi.al.ro.configuration;
 
-import java.util.Arrays;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.core.JmsTemplate;
+
+import java.util.Arrays;
 
 @Configuration
 public class MessagingConfiguration {
 
     private static final String DEFAULT_BROKER_URL = "tcp://localhost:61616";
 
-    private static final String ORDER_QUEUE = "testQueue";
+    private static final String ORDER_QUEUE = "order-queue";
 
     @Bean
     public ActiveMQConnectionFactory connectionFactory(){
@@ -29,4 +29,5 @@ public class MessagingConfiguration {
         template.setDefaultDestinationName(ORDER_QUEUE);
         return template;
     }
+
 }

@@ -17,7 +17,7 @@ public class MessageTextWithTimestamp implements Serializable {
     /**
      * Время отправки сообщения в канал
      */
-    private Long timestamp;
+    private long timestamp;
 
     public String getText() {
         return text;
@@ -27,11 +27,11 @@ public class MessageTextWithTimestamp implements Serializable {
         this.text = text;
     }
 
-    public Long getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Long timestamp) {
+    public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
 

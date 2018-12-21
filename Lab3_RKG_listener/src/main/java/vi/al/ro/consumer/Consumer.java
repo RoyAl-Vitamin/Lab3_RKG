@@ -15,22 +15,13 @@ public class Consumer {
 
     private static final Logger logger = LoggerFactory.getLogger(Consumer.class);
 
-//    @Value("${message.name}")
-    private static final String ORDER_RESPONSE_QUEUE = "testQueue";
-
-    @JmsListener(destination = ORDER_RESPONSE_QUEUE) // = "${message.name}"
+    @JmsListener(destination = "${message.name}")
     public void receiveMessage(ObjectMessage message) throws JMSException {
-        logger.info("+++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        if (message instanceof MessageTextWithTimestamp) {
+        if (message.getObject() instanceof MessageTextWithTimestamp) {
             logger.info("yep");
-            MessageTextWithTimestamp mtwt = (MessageTextWithTimestamp) message;
+            MessageTextWithTimestamp mtwt = (MessageTextWithTimestamp) message.getObject();
             logger.info("text: " + mtwt.getText());
             logger.info("timestamp: " + mtwt.getTimestamp());
         }
     }
-
-//    @Autowired
-//    public void setOrderResponseQueue(@Value("${message.name}") String orderResponseQueue) {
-//        this.ORDER_RESPONSE_QUEUE = orderResponseQueue;
-//    }
 }
