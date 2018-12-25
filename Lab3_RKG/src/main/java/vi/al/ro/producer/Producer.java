@@ -14,12 +14,12 @@ public class Producer {
     @Autowired
     private JmsTemplate jmsTemplate;
 
-    public void send(String queueName, String text) {
-        jmsTemplate.send(queueName, session -> {
-            TextMessage textMessage = session.createTextMessage(text);
-            return textMessage;
-        });
-    }
+//    public void send(String queueName, String text) {
+//        jmsTemplate.send(queueName, session -> {
+//            TextMessage textMessage = session.createTextMessage(text);
+//            return textMessage;
+//        });
+//    }
 
     public <T extends Serializable> void send(String queueName, T obj) {
         jmsTemplate.send(queueName, session -> {

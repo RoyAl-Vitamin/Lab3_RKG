@@ -3,6 +3,7 @@ package vi.al.ro.configuration;
 import java.util.Arrays;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.core.JmsTemplate;
@@ -10,9 +11,11 @@ import org.springframework.jms.core.JmsTemplate;
 @Configuration
 public class MessagingConfiguration {
 
-    private static final String DEFAULT_BROKER_URL = "tcp://localhost:61616";
+    @Value("${spring.activemq.broker-url}")
+    private String DEFAULT_BROKER_URL;
 
-    private static final String ORDER_QUEUE = "testQueue";
+    @Value("${message.name}")
+    private String ORDER_QUEUE;
 
     @Bean
     public ActiveMQConnectionFactory connectionFactory(){
