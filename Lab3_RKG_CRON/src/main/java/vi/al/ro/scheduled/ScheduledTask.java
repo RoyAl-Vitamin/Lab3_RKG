@@ -13,10 +13,7 @@ import vi.al.ro.producer.Producer;
 import vi.al.ro.repository.MessageRepository;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 
 @Component
 public class ScheduledTask {
@@ -28,6 +25,8 @@ public class ScheduledTask {
     private Producer producer;
 
     private MessageRepository messageRepository;
+
+    private Integer num = null;
 
     @Value("${message.name}")
     private String ORDER_QUEUE;
@@ -46,31 +45,40 @@ public class ScheduledTask {
         this.messageRepository = messageRepository;
     }
 
-    @Scheduled(fixedRate = 5000, fixedDelay = 5000)
+    @Scheduled(fixedRate = 5000)
     public void reportCurrentTime() {
         logger.info("The time is now {}", dateFormat.format(new Date()));
-//        viewDB();
+        Integer lastNumber = messageRepository.getLastNumber();
+        logger.info("ORDER_QUEUE == " + ORDER_QUEUE);
+        logger.info("lastNumber == " + lastNumber);
+        logger.info("num == " + num);
+        if (lastNumber != null && (num == null || num < lastNumber)) {
+            viewDBAndPasteInMQ(lastNumber);
+        }
     }
 
     /**
      * Просматривает БД и ищет изменённые записи
+     * @param lastNumber последний номер сохранённый в БД
      */
-    private void viewDB() {
-        String text = "";
+    private void viewDBAndPasteInMQ(int lastNumber) {
+        int capasity = lastNumber;
+        if (num != null) {
+            capasity -= num;
+        }
+        Set<Integer> set = new HashSet<>(capasity);
+        for (int i = num; i < lastNumber; i++) {
+            set.add(i);
+        }
+        List<MessageTextWithTimestamp> list = messageRepository.getMessages(set);
         try {
-            MessageTextWithTimestamp mtwt = new MessageTextWithTimestamp();
-            mtwt.setText(text);
-            mtwt.setTimestamp(Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault()).getTimeInMillis());
-            logger.debug("ORDER_QUEUE == " + ORDER_QUEUE);
-//            producer.send(ORDER_QUEUE, mtwt);
-
-            Message message = modelMapper.map(mtwt, Message.class);
-
-//            messageRepository.save(message);
-
-//            "message:\n" + mtwt.toString();
+            list.forEach(mtwt -> {
+                logger.debug("mtwt == " + mtwt.toString());
+                producer.send(ORDER_QUEUE, mtwt);
+            });
         } catch (JmsException e) {
             logger.error("JmsException: ", e);
         }
+        num = lastNumber;
     }
 }
