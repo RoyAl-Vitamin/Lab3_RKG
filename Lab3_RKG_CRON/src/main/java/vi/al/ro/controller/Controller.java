@@ -55,8 +55,6 @@ public class Controller {
             MessageTextWithTimestamp mtwt = new MessageTextWithTimestamp();
             mtwt.setText(text);
             mtwt.setTimestamp(Calendar.getInstance(TimeZone.getDefault(), Locale.getDefault()).getTimeInMillis());
-            logger.debug("ORDER_QUEUE == " + ORDER_QUEUE);
-            producer.send(ORDER_QUEUE, mtwt);
 
             Message message = modelMapper.map(mtwt, Message.class);
 

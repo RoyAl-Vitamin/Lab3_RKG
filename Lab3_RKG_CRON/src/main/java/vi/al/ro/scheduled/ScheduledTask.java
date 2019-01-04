@@ -26,6 +26,9 @@ public class ScheduledTask {
 
     private MessageRepository messageRepository;
 
+    /**
+     * Кол-во переданных объектов
+     */
     private Integer num = null;
 
     @Value("${message.name}")
@@ -34,9 +37,9 @@ public class ScheduledTask {
     private static ModelMapper modelMapper = new ModelMapper();
 
     static {
-        modelMapper.createTypeMap(MessageTextWithTimestamp.class, Message.class).addMappings(mapper -> {
-            mapper.map(MessageTextWithTimestamp::getText, Message::setText);
-            mapper.map(MessageTextWithTimestamp::getTimestamp, Message::setTimestamp);
+        modelMapper.createTypeMap(Message.class, MessageTextWithTimestamp.class).addMappings(mapper -> {
+            mapper.map(Message::getText, MessageTextWithTimestamp::setText);
+            mapper.map(Message::getTimestamp, MessageTextWithTimestamp::setTimestamp);
         });
     }
 
@@ -45,40 +48,52 @@ public class ScheduledTask {
         this.messageRepository = messageRepository;
     }
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 10000)
     public void reportCurrentTime() {
         logger.info("The time is now {}", dateFormat.format(new Date()));
+
         Integer lastNumber = messageRepository.getLastNumber();
-        logger.info("ORDER_QUEUE == " + ORDER_QUEUE);
+
         logger.info("lastNumber == " + lastNumber);
         logger.info("num == " + num);
-        if (lastNumber != null && (num == null || num < lastNumber)) {
+
+        if (lastNumber == null) return;
+
+        if (num == null || num < lastNumber) {
             viewDBAndPasteInMQ(lastNumber);
         }
     }
 
     /**
      * Просматривает БД и ищет изменённые записи
-     * @param lastNumber последний номер сохранённый в БД
+     * @param countAll последний номер сохранённый в БД
      */
-    private void viewDBAndPasteInMQ(int lastNumber) {
-        int capasity = lastNumber;
+    private void viewDBAndPasteInMQ(int countAll) {
+        int capacity = countAll;
         if (num != null) {
-            capasity -= num;
+            capacity -= num;
+        } else {
+            num = 0;
         }
-        Set<Integer> set = new HashSet<>(capasity);
-        for (int i = num; i < lastNumber; i++) {
-            set.add(i);
+
+        Set<Integer> set = new HashSet<>(capacity);
+        for (int i = num; i < countAll; i++) {
+            set.add(i + 1);
         }
-        List<MessageTextWithTimestamp> list = messageRepository.getMessages(set);
+        logger.info("set foreach:");
+        set.forEach(System.out::println);
+        List<Message> list = messageRepository.getMessages(set);
         try {
-            list.forEach(mtwt -> {
+            list.forEach(message -> {
+
+                MessageTextWithTimestamp mtwt = modelMapper.map(message, MessageTextWithTimestamp.class);
+
                 logger.debug("mtwt == " + mtwt.toString());
                 producer.send(ORDER_QUEUE, mtwt);
             });
         } catch (JmsException e) {
             logger.error("JmsException: ", e);
         }
-        num = lastNumber;
+        num = countAll;
     }
 }

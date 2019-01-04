@@ -12,7 +12,7 @@ import java.util.Set;
 public interface MessageRepository extends PagingAndSortingRepository<Message, Integer> {
 
     /**
-     * @return Возвращает последний ID записанный в БД
+     * @return Возвращает последний ID записанный в БД, он является и кол-вом объектов в БД
      */
     @Query("SELECT MAX(m.id) FROM Message m")
     Integer getLastNumber();
@@ -22,5 +22,5 @@ public interface MessageRepository extends PagingAndSortingRepository<Message, I
      * @return Возвращает все сообщения с задаными ID
      */
     @Query("SELECT m FROM Message m WHERE m.id IN :set")
-    List<MessageTextWithTimestamp> getMessages(@Param("set") Set<Integer> set);
+    List<Message> getMessages(@Param("set") Set<Integer> set);
 }
